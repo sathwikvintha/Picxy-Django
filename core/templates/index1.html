@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Analyze images with AI and extract metadata for SEO optimization."
+    />
+    <meta
+      name="keywords"
+      content="AI Image Analysis, AWS Rekognition, SEO Images, Pixcy AI"
+    />
+    <meta name="author" content="Pixcy AI" />
+    <title>Label Detection</title>
+    <style>
+      .hidden {
+        display: none;
+      }
+      .image-container {
+        display: flex;
+        flex-wrap: wrap;
+      }
+      .image-box {
+        margin: 10px;
+        text-align: center;
+      }
+    </style>
+    <!-- Font Awesome -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css"
+      rel="stylesheet"
+    />
+    <!-- Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap"
+      rel="stylesheet"
+    />
+    <!-- MDB -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/3.10.1/mdb.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body onload="hideLoadingDiv()">
+    <div class="p-4">
+      <h3 class="text-center text-white mb-4 my-2 p-4 bg-primary card">
+        Detect Labels using Amazon Rekognition
+      </h3>
+      {% if statement %}
+      <div class="text-center" id="LOADING">
+        {% if statement == "success" %}
+        <br /><button
+          style="width: 100%"
+          type="submit"
+          class="mx-auto btn btn-success text-nowrap"
+        >
+          Label Detection Successful
+        </button>
+        {% else %}
+        <br />
+        <button
+          style="width: 100%"
+          type="submit"
+          class="mx-auto btn btn-danger text-nowrap"
+        >
+          {{ statement }}
+        </button>
+        {% endif %}
+      </div>
+      <br />
+      {% endif %}
+      <!-- Fetch Image Form -->
+      <div class="row">
+        <div class="col-12 col-md-6 col-lg-6 border rounded p-4">
+          <h4>Search Images</h4>
+          <form id="searchForm">
+            <input
+              type="text"
+              id="searchQuery"
+              placeholder="Search by label, tag, or image name"
+              required
+            />
+            <button type="submit" class="btn btn-primary">Search</button>
+          </form>
+          <div id="searchResults" class="mt-4"></div>
+        </div>
+      </div>
+      <!-- SEO Meta Tags -->
+      {% if meta_title or meta_description %}
+      <div class="row mt-4">
+        <div class="col-12">
+          <h3>SEO Meta Tags:</h3>
+          <p><strong>Title:</strong> {{ meta_title }}</p>
+          <p><strong>Description:</strong> {{ meta_description }}</p>
+        </div>
+      </div>
+      {% endif %}
+      <div class="row">
+        <!-- List All Images -->
+        <div class="col-12 col-md-6 col-lg-6 border rounded p-4">
+          <div class="col-12">
+            <h4>List of Images in Database</h4>
+            <a
+              href="{% url 'list_images' %}"
+              class="btn btn-secondary text-nowrap"
+              >View All Images</a
+            >
+            <button id="fetchAllImages" class="btn btn-primary text-nowrap">
+              Fetch All Images
+            </button>
+            <div id="imageResults" class="mt-4"></div>
+          </div>
+        </div>
+        <!-- Upload New Image -->
+        <div class="col-12 col-md-6 col-lg-6 border rounded p-4">
+          <div class="col-12">
+            <h4>Upload a New Image</h4>
+            <form
+              action="{% url 'upload_image' %}"
+              method="post"
+              enctype="multipart/form-data"
+            >
+              {% csrf_token %}
+              <input
+                type="file"
+                name="image"
+                accept=".png,.jpg,.jpeg,.webp"
+                required
+              />
+              <button type="submit" class="btn btn-primary">
+                Upload Image
+              </button>
+            </form>
+            <div id="uploadResult"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Pixcy AI Image Analyzer",
+        "description": "Extract image metadata using AI to improve SEO.",
+        "url": "https://yourwebsite.com"
+      }
+    </script>
+    <script
+      src="https://code.jquery.com/jquery-3.6.0.min.js"
+      integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+      crossorigin="anonymous"
+    ></script>
+    <!-- MDB -->
+    <script
+      type="text/javascript"
+      src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/3.10.1/mdb.min.js"
+    ></script>
+    <script>
+      function hideLoadingDiv() {
+        setTimeout(function () {
+          const loadingDiv = document.getElementById("LOADING");
+          if (loadingDiv) {
+            loadingDiv.classList.add("hidden");
+          }
+        }, 5000);
+      }
+      // Fetch All Images
+      document
+        .getElementById("fetchAllImages")
+        .addEventListener("click", async function () {
+          const response = await fetch("{% url 'fetch_all_images' %}");
+          const images = await response.json();
+          const container = document.getElementById("imageResults");
+          container.innerHTML = "";
+          if (response.ok && !images.error) {
+            for (const image of images) {
+              const imageDiv = document.createElement("div");
+              imageDiv.classList.add("image-box");
+              imageDiv.innerHTML = `
+                            <h4>${image.image_path}</h4>
+                            <img src="/media/${image.image_path}" alt="${
+                image.image_name
+              }" style="width: 200px; height: auto;" />
+                            <p><strong>Labels:</strong> ${image.labels.join(
+                              ", "
+                            )}</p>
+                            <p><strong>Meta Title:</strong> ${
+                              image.meta_title
+                            }</p>
+                            <p><strong>Meta Description:</strong> ${
+                              image.meta_description
+                            }</p>
+                            <hr>
+                        `;
+              container.appendChild(imageDiv);
+            }
+          } else {
+            container.innerHTML = `<p class="text-danger">${
+              images.error || "An error occurred while fetching images."
+            }</p>`;
+          }
+        });
+      // Handle Image Upload
+      document
+        .querySelector("form[action='{% url 'upload_image' %}']")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+          const formData = new FormData(this);
+          const response = await fetch("{% url 'upload_image' %}", {
+            method: "POST",
+            body: formData,
+          });
+          const result = await response.json();
+          const resultDiv = document.getElementById("uploadResult");
+          if (response.ok) {
+            resultDiv.innerHTML = `
+                    <p style="color: green;">${result.message}</p>
+                    <p><strong>Image Path:</strong> ${result.image_path}</p>
+                    <p><strong>Labels:</strong> ${result.labels.join(", ")}</p>
+                    <p><strong>Meta Title:</strong> ${result.meta_title}</p>
+                    <p><strong>Meta Description:</strong> ${
+                      result.meta_description
+                    }</p>
+                `;
+          } else {
+            resultDiv.innerHTML = `<p style="color: red;">${result.error}</p>`;
+          }
+        });
+      document
+        .getElementById("searchForm")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+          const query = document.getElementById("searchQuery").value.trim();
+          if (!query) {
+            alert("Please enter a search term.");
+            return;
+          }
+          try {
+            const response = await fetch(`/search/?q=${query}`);
+            if (!response.ok)
+              throw new Error(`Server error: ${response.status}`);
+            const images = await response.json();
+            const resultsContainer = document.getElementById("searchResults");
+            resultsContainer.innerHTML = "";
+            if (!images.length) {
+              resultsContainer.innerHTML = `<p class="text-warning">No matching images found.</p>`;
+              return;
+            }
+            for (const image of images) {
+              const imageDiv = document.createElement("div");
+              imageDiv.classList.add("image-box");
+              imageDiv.innerHTML = `
+                <h4>${image.image_name}</h4>
+                <h5>${image.image_path}</h5>
+                <p><strong>Labels:</strong> ${image.labels.join(", ")}</p>
+                <p><strong>Tags:</strong> ${image.tags.join(", ")}</p>
+                <p><strong>Meta Title:</strong> ${image.meta_title}</p>
+                <p><strong>Meta Description:</strong> ${
+                  image.meta_description
+                }</p>
+                <hr>
+            `;
+              resultsContainer.appendChild(imageDiv);
+            }
+          } catch (error) {
+            console.error("Search error:", error);
+            document.getElementById(
+              "searchResults"
+            ).innerHTML = `<p class="text-danger">${error.message}</p>`;
+          }
+        });
+    </script>
+  </body>
+</html>

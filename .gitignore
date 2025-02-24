@@ -1,0 +1,24 @@
+# Ignore Python cache files
+__pycache__/
+*.pyc
+
+# Ignore virtual environment
+venv/
+env/
+
+# Ignore database files (if applicable)
+*.sqlite3
+
+# Ignore AWS credentials file
+aws_credentials.csv
+
+# Ignore media and static files (optional, depending on your setup)
+media/
+static/
+
+# Ignore IDE-specific files
+.vscode/
+.idea/
+
+# Ignore log files
+*.log
