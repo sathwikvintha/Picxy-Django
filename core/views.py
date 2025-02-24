@@ -61,6 +61,7 @@ DB_USER = "postgres"
 DB_PASSWORD = "Sathwik@20022004"
 
 
+# hello
 # Load AWS Credentials from CSV
 def load_aws_credentials(filename="aws_credentials.csv"):
     try:
