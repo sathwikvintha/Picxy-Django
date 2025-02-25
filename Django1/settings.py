@@ -40,6 +40,11 @@ INSTALLED_APPS = [
     "core",
 ]
 
+ELASTICSEARCH_HOST = "http://localhost:9200"
+ELASTICSEARCH_INDEX_PHOTO = "p10"
+ELASTICSEARCH_INDEX_TAG = "picxy_tag"
+SEARCH_SUGGESTIONS_INDEX = "search_suggestions"
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
